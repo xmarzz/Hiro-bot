@@ -1,0 +1,19 @@
+{
+  "name": "hiro",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xmarzz/Hiro_Bot.git"
+  },
+  "author": "Marz",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xmarzz/Hiro_Bot/issues"
+  },
+  "homepage": "https://github.com/xmarzz/Hiro_Bot#readme"
+}
