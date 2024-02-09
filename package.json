@@ -1,10 +1,11 @@
 {
   "name": "hiro",
   "version": "1.0.0",
-  "description": "",
+  "description": "Hiro Bot",
   "main": "index.js",
   "scripts": {
-    "test": "npm run dev"
+    "test": "npm run dev",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/xmarzz/Hiro_Bot/issues"
   },
-  "homepage": "https://github.com/xmarzz/Hiro_Bot#readme"
+  "homepage": "https://github.com/xmarzz/Hiro_Bot#readme",
+  "dependencies": {
+    "axios": "^1.6.7",
+    "express": "^4.18.2"
+  }
 }

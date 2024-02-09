@@ -1,10 +1,18 @@
-const bodyParser = require('body-parser')
-const express = require('express')
+const express = require("express")
+const PORT = process.env.PORT || 4040;
+
 const app = express()
+app.use(express.json())
+app.post("*", async(req,res)=>{
+    res.send("hello post")
+})
+app.get("*",async(req,res)=>{
+    res.send("get")
+})
 
-app.use(bodyParser.json())
-
-app.post('/webhook',(req,res) => {
-    const 
+app.listen(PORT, function(err){
+    if(err)
+    console.log(err)
+  console.log('server is listening to', PORT)
 })
 
