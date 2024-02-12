@@ -1,18 +1,22 @@
-const express = require("express")
-const PORT = process.env.PORT || 4040;
+const TelegramBot =  require('node-telegram-bot-api')
+require('dotenv').config();
 
-const app = express()
-app.use(express.json())
-app.post("*", async(req,res)=>{
-    res.send("hello post")
-})
-app.get("*",async(req,res)=>{
-    res.send("get")
-})
+const bot_api = process.env.BOT_API
 
-app.listen(PORT, function(err){
-    if(err)
-    console.log(err)
-  console.log('server is listening to', PORT)
-})
+const token = bot_api;
+const bot = new TelegramBot(token, { polling: true });
 
+bot.on('message', (msg) => {
+  const chatId = msg.chat.id;
+  const messageText = msg.text;
+
+  if (messageText === '/start') {
+    bot.sendMessage(chatId, 'Welcome to the bot!');
+  }
+  else if(messageText==='/name'){
+    bot.sendMessage(chatId,"ur mom");
+  }
+  else if(messageText==='/text'){
+    bot.sendMessage(chatId, 'what ya wanna text about')
+  }
+});
