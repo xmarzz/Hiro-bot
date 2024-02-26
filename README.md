@@ -29,7 +29,5 @@ Hiro Bot is designed to enhance your productivity by helping you manage your dai
 
 ## Getting Started
 
-1. Obtain your own Telegram token from [BotFather](https://t.me/botfather).
-2. Insert the token at the top of `index.js`.
-3. Clone this repository and run `npm install`.
-4. To run the bot, execute `node index.js` or `npm start`.
+1. Clone this repository and run `npm install`.
+2. To run the bot, execute `node index.js` or `npm start`.
