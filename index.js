@@ -61,7 +61,12 @@ bot.on("message", (msg) => {
       chatId,
       "This bot helps manage study sessions.\n\n FLOW TIME \n\n \u2192What it is: A time management system based on the idea that focusing on a single task for an extended period of time can lead to increased productivity and creativity. \n\n \u2192How it works: You set a timer for a period of time (typically 45 minutes) and work on a single task until the timer goes off. During this time, you avoid all distractions, such as checking your phone or email. \n\n \u2192Benefits: Can help you to get into a state of flow, which is a state of deep concentration and immersion in a task. This can lead to increased productivity, creativity, and satisfaction. \n\n \u2192Drawbacks: Requires a lot of discipline and focus. It can be difficult to resist distractions, especially if you are used to multitasking."
     );
-  } else {
+  } else if(messageText.startsWith("/fact")) {
+    bot.sendMessage(
+      chatId,
+      "jaff's love ceylin");
+  }
+  else {
     bot.sendMessage(chatId, "Enter valid commands");
   }
 });
