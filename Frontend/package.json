@@ -1,0 +1,29 @@
+{
+  "name": "hiro",
+  "version": "1.0.0",
+  "description": "Hiro Bot",
+  "main": "bot.js",
+  "scripts": {
+    "test": "npm run dev",
+    "start": "node bot.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xmarzz/Hiro_Bot.git"
+  },
+  "author": "Marz",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xmarzz/Hiro_Bot/issues"
+  },
+  "homepage": "https://github.com/xmarzz/Hiro_Bot#readme",
+  "dependencies": {
+    "axios": "^1.6.7",
+    "dotenv": "^16.4.2",
+    "express": "^4.18.2",
+    "mongodb": "^6.17.0",
+    "node-telegram-bot-api": "^0.66.0",
+    "psl": "^1.15.0",
+    "tough-cookie": "^5.1.2"
+  }
+}
