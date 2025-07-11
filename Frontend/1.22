@@ -1,6 +1,0 @@
-Collecting numpy
-  Using cached numpy-1.16.6.zip (5.1 MB)
-Using legacy 'setup.py install' for numpy, since package 'wheel' is not installed.
-Installing collected packages: numpy
-    Running setup.py install for numpy: started
-    Running setup.py install for numpy: finished with status 'error'
