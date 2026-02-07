@@ -5,12 +5,9 @@ const axios = require("axios");
 const token = process.env.BOT_API;
 const bot = new TelegramBot(token, { polling: true });
 
-// session state
-let session = {
-    name: null,
-    startTime: null,
-    timer: null
-};
+// Per-user session state storage
+// format: { chatId: { name: string, startTime: number, timer: timeout, state: 'idle'|'awaitingName' } }
+const userSessions = new Map();
 
 const motivationalQuotes = [
     "Keep going! Every minute counts.",
@@ -19,19 +16,61 @@ const motivationalQuotes = [
     "Focus brings freedom."
 ];
 
-// states
-let awaitingSessionName = null;
-let awaitingSessionDuration = null;
+// Helper to get or create session
+function getSession(chatId) {
+    if (!userSessions.has(chatId)) {
+        userSessions.set(chatId, {
+            name: null,
+            startTime: null,
+            timer: null,
+            state: 'idle'
+        });
+    }
+    return userSessions.get(chatId);
+}
+
+// Handle Callback Queries (Button Clicks)
+bot.on("callback_query", (callbackQuery) => {
+    const chatId = callbackQuery.message.chat.id;
+    const data = callbackQuery.data;
+    const session = getSession(chatId);
+
+    if (data.startsWith("duration_")) {
+        // If we were waiting for duration (or just from the button click usually implying we are setting up)
+        const minutes = parseInt(data.split("_")[1]);
+        session.startTime = Date.now();
+        session.state = 'running';
+
+        bot.sendMessage(
+            chatId,
+            `✅ Started *${session.name}* for ${minutes} minutes. Stay focused!`,
+            { parse_mode: "Markdown" }
+        );
+
+        if (session.timer) clearTimeout(session.timer);
+        session.timer = setTimeout(() => {
+            bot.sendMessage(chatId, "⏰ Time's up! Take a short break!");
+            session.startTime = null; // Session expired
+            session.state = 'idle';
+        }, minutes * 60 * 1000);
+
+        // Remove the inline keyboard
+        bot.editMessageReplyMarkup(
+            { inline_keyboard: [] },
+            { chat_id: chatId, message_id: callbackQuery.message.message_id }
+        );
+    }
+});
 
 bot.on("message", async (msg) => {
     const chatId = msg.chat.id;
-    const messageText = msg.text.trim().toLowerCase();
+    const messageText = msg.text ? msg.text.trim().toLowerCase() : "";
+    const session = getSession(chatId);
 
-    // user is typing the name
-    if (awaitingSessionName === chatId) {
-        session.name = msg.text.trim();
-        awaitingSessionName = null;
-        awaitingSessionDuration = chatId;
+    // 1. Check State: Awaiting Session Name
+    if (session.state === 'awaitingName') {
+        session.name = msg.text.trim(); // Use original case for name
+        session.state = 'awaitingDuration';
 
         bot.sendMessage(
             chatId,
@@ -48,56 +87,10 @@ bot.on("message", async (msg) => {
                     ]
                 }
             });
-        awaitingSessionName=null; 
         return;
     }
 
-    bot.on("callback_query", (callbackQuery) => {
-    const chatId = callbackQuery.message.chat.id;
-    const data = callbackQuery.data;
-
-    if (data.startsWith("duration_")) {
-        const minutes = parseInt(data.split("_")[1]);
-        session.startTime = Date.now();
-
-        bot.sendMessage(
-            chatId,
-            `✅ Started *${session.name}* for ${minutes} minutes. Stay focused!`,
-            { parse_mode: "Markdown" }
-        );
-
-        session.timer = setTimeout(() => {
-            bot.sendMessage(chatId, "⏰ Time's up! Take a short break!");
-        }, minutes * 60 * 1000);
-
-        awaitingSessionDuration = null;
-
-        // Optional: remove the inline keyboard
-        bot.editMessageReplyMarkup(
-            { inline_keyboard: [] },
-            { chat_id: chatId, message_id: callbackQuery.message.message_id }
-        );
-    }
-});
-
-
-    // user is picking duration
-    if (awaitingSessionDuration === chatId && ["30", "45", "90"].includes(messageText)) {
-        const minutes = parseInt(messageText);
-        session.startTime = Date.now();
-        bot.sendMessage(
-            chatId,
-            `✅ Started *${session.name}* for ${minutes} minutes. Stay focused!`,
-            { parse_mode: "Markdown" }
-        );
-        session.timer = setTimeout(() => {
-            bot.sendMessage(chatId, "⏰ Time's up! Take a short break!");
-        }, minutes * 60 * 1000);
-        awaitingSessionDuration = null;
-        return;
-    }
-
-    // main commands
+    // 2. Main Commands
     if (messageText === "start") {
         bot.sendMessage(
             chatId,
@@ -116,7 +109,7 @@ bot.on("message", async (msg) => {
             );
         } else {
             bot.sendMessage(chatId, "📝 Please enter a name for this new session:");
-            awaitingSessionName = chatId;
+            session.state = 'awaitingName';
         }
         return;
     }
@@ -137,7 +130,7 @@ bot.on("message", async (msg) => {
 
     if (messageText === "end session") {
         if (session.startTime) {
-            clearTimeout(session.timer);
+            if (session.timer) clearTimeout(session.timer);
             bot.sendMessage(
                 chatId,
                 `✅ Session *${session.name}* ended. Great work!`,
@@ -145,6 +138,7 @@ bot.on("message", async (msg) => {
             );
             session.name = null;
             session.startTime = null;
+            session.state = 'idle';
         } else {
             bot.sendMessage(chatId, "⚠️ There is no active session to end.");
         }
@@ -160,31 +154,36 @@ bot.on("message", async (msg) => {
         return;
     }
 
-    // fallback: analyze sentiment
+    // 3. Fallback: Chat with AI (Hiro)
     try {
         const res = await axios.post("http://127.0.0.1:5000/predict", {
-            text: msg.text
+            text: msg.text,
+            user_id: chatId.toString()
         });
-       if (res.data && res.data.emotion) {
-    const emotion = res.data.emotion;
 
-    if (["sad", "angry", "tired", "bored"].includes(emotion)) {
-        const quote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
-        bot.sendMessage(
-            chatId,
-            `😟 You seem *${emotion}*. Here's something for you:\n\n_${quote}_`,
-            { parse_mode: "Markdown" }
+        if (res.data && res.data.response) {
+            bot.sendMessage(chatId, res.data.response);
+        } else if (res.data && res.data.emotion) {
+            // Check for legacy response format just in case
+            const emotion = res.data.emotion;
+            const quote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+            bot.sendMessage(
+                chatId, 
+                `[Emotion Detected: ${emotion}]\n${quote}`, 
+                { parse_mode: "Markdown" }
             );
         } else {
-            bot.sendMessage(chatId, `😃 You seem *${emotion}*! Keep that energy going!`);
+            bot.sendMessage(chatId, "⚠️ Couldn’t analyze your mood.");
         }
-    } else {
-        bot.sendMessage(chatId, "⚠️ Couldn’t analyze your mood.");
-    }
 
     } catch (err) {
-        console.error(err);
-        bot.sendMessage(chatId, "⚠️ Error analyzing sentiment.");
+        console.error("Backend request failed:", err.message);
+        let errorMsg = "⚠️ Error analyzing sentiment.";
+        
+        if (err.response && err.response.data && err.response.data.error) {
+            errorMsg += `\n(Backend: ${err.response.data.error})`;
+        }
+        
+        bot.sendMessage(chatId, errorMsg);
     }
 });
-

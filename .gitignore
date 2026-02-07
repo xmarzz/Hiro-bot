@@ -1,0 +1,36 @@
+# General
+.DS_Store
+thumbs.db
+.vscode/
+.idea/
+*.log
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Backend (Python/Flask)
+__pycache__/
+*.py[cod]
+*$py.class
+Backend/venv/
+venv/
+.venv/
+env/
+*.pkl
+backend/instance/
+.pytest_cache/
+
+# Frontend (Node.js)
+Frontend/node_modules/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+dist/
+build/
+.cache/
